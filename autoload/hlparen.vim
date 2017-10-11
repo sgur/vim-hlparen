@@ -20,20 +20,25 @@ function! hlparen#highlight(...) abort
     call timer_stop(s:timer_id)
   endif
   let s:timer_id = timer_start(g:hlparen_highlight_delay,
-        \ {timer -> s:highlight(offset, w:hlparen_pairs[ch])})
+        \ {timer -> s:highlight(w:hlparen_pairs[ch], offset)})
 endfunction
 
 
 " Internal {{{1
 
-function! s:highlight(offset, pair) abort "{{{
+function! s:highlight(pair, offset) abort "{{{
+  let skip_expr = s:skip_expr()
+  if skip_expr is# 0 " skip in String/Character/Quote/Escape/Comment syntaxes
+    return
+  endif
+
   let is_open_paren = has_key(a:pair, 'open')
-  let cur_pos = [line('.'), col('.') - a:offset]
   let flags = is_open_paren ? 'nW' : 'nbW'
   let stop = is_open_paren ? 'w$' : 'w0'
+  let cur_pos = [line('.'), col('.') - a:offset]
   let pair_pos = a:offset
-        \ ? s:save_excursion(cur_pos, function('s:searchpairpos'), [a:pair.start, a:pair.end, flags, stop])
-        \ : s:searchpairpos(a:pair.start, a:pair.end, flags, stop)
+        \ ? s:save_excursion(cur_pos, function('searchpairpos'), [a:pair.start, '', a:pair.end, flags, skip_expr, stop])
+        \ : searchpairpos(a:pair.start, '', a:pair.end, flags, skip_expr, stop)
   if pair_pos[0] > 0
     if g:hlparen_highlight_style == 'expression'
       let [cur_pos, pair_pos] += s:calc_expression_range(cur_pos, pair_pos, is_open_paren)
@@ -43,9 +48,9 @@ function! s:highlight(offset, pair) abort "{{{
 endfunction "}}}
 
 function! s:calc_expression_range(cur_pos, pair_pos, is_opened) abort "{{{
-  let lines1 = len(join(getline(1, a:cur_pos[0]-1), '')) + a:cur_pos[1]
-  let lines2 = len(join(getline(1, a:pair_pos[0]-1), '')) + a:pair_pos[1]
-  return a:is_opened ? [[lines2 - lines1], []] : [[], [lines1 - lines2]]
+  let len1 = len(join(getline(1, a:cur_pos[0]-1), '')) + a:cur_pos[1]
+  let len2 = len(join(getline(1, a:pair_pos[0]-1), '')) + a:pair_pos[1]
+  return a:is_opened ? [[len2 - len1], []] : [[], [len1 - len2]]
 endfunction "}}}
 
 function! s:save_excursion(cur_pos, func, args) abort "{{{
@@ -58,27 +63,16 @@ function! s:save_excursion(cur_pos, func, args) abort "{{{
   endtry
 endfunction "}}}
 
+" borrowed from $VIMRUNTIME/plugin/matchparen.vim
+" let expr = '
+"       \ !empty(
+"       \   filter(
+"       \     map(synstack(line("."), col(".")), ''synIDattr(v:val, "name")''),
+"       \     ''v:val =~? "\\%(string\\|character\\|singlequote\\|escape\\|comment\\)"''
+"       \ ))'
 function! s:skip_expr() abort "{{{
-  " borrowed from $VIMRUNTIME/plugin/matchparen.vim
-
-  " Build an expression that detects whether the current cursor position is in
-  " certain syntax types (string, comment, etc.), for use as searchpairpos()'s
-  " skip argument.
-  " We match "escape" for special items, such as lispEscapeSpecial.
-  let s_skip = '!empty(filter(map(synstack(line("."), col(".")), ''synIDattr(v:val, "name")''), ' .
-	\ '''v:val =~? "\\%(string\\|character\\|singlequote\\|escape\\|comment\\)"''))'
-  " If executing the expression determines that the cursor is currently in
-  " one of the syntax types, then we want searchpairpos() to find the pair
-  " within those syntax types (i.e., not skip).  Otherwise, the cursor is
-  " outside of the syntax types and s_skip should keep its value so we skip any
-  " matching pair inside the syntax types.
-  execute 'if' s_skip '| let s_skip = 0 | endif'
-
-  return s_skip
-endfunction "}}}
-
-function! s:searchpairpos(start, end, flags, stopline) abort "{{{
-  return searchpairpos(a:start, '', a:end, a:flags, s:skip_expr(), line(a:stopline), 10)
+  let expr = 'synIDattr(synIDtrans(synID(line(''.''), col(''.''), 1)),''name'') =~# ''\%(String\|Character\|Quote\|Escape\|Comment\)'''
+  return eval(expr) ? 0 : expr
 endfunction "}}}
 
 
