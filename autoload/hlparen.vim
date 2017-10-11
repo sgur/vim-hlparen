@@ -84,11 +84,7 @@ endfunction "}}}
 
 " Initialization {{{1
 
-if expand("%:p") == expand("<sfile>:p")
-  highlight clear HlParenMatch
-endif
-
-if !exists('HlParenMatch')
+if !hlexists('HlParenMatch')
   highlight HlParenMatch term=underline,bold cterm=underline,bold gui=underline,bold
 endif
 
