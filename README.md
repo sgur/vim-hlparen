@@ -69,6 +69,14 @@ Install
 let g:loaded_matchparen = 1
 ```
 
+Thanks
+----
+
+このプラグインは以下のプラグインに多大な影響を受けています。
+
+ - [matchparen.vim](https://github.com/vim/vim/blob/master/runtime/plugin/matchparen.vim)
+ - [vim-parenmatch](https://github.com/itchyny/vim-parenmatch) 
+
 License
 -------
 
