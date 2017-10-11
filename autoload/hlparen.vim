@@ -11,8 +11,8 @@ function! hlparen#highlight(...) abort
     let w:hlparen_matchid = 0
   endif
   let ch = getline('.')[col('.') - offset -1]
-  " let close_only = g:hlparen_insmode_trigger is# 'close_only'
-  if !has_key(w:hlparen_pairs, ch) " || close_only && offset && has_key(w:hlparen_pairs[ch], 'open')
+  let close_only = g:hlparen_insmode_trigger is# 'close_only'
+  if !has_key(w:hlparen_pairs, ch) || close_only && offset && has_key(w:hlparen_pairs[ch], 'open')
     return
   endif
 
@@ -27,24 +27,25 @@ endfunction
 " Internal {{{1
 
 function! s:highlight(offset, pair) abort "{{{
+  let is_open_paren = has_key(a:pair, 'open')
   let cur_pos = [line('.'), col('.') - a:offset]
-  let flags = has_key(a:pair, 'open') ? 'nW' : 'nbW'
-  let stop = has_key(a:pair, 'open') ? 'w$' : 'w0'
+  let flags = is_open_paren ? 'nW' : 'nbW'
+  let stop = is_open_paren ? 'w$' : 'w0'
   let pair_pos = a:offset
         \ ? s:save_excursion(cur_pos, function('s:searchpairpos'), [a:pair.start, a:pair.end, flags, stop])
         \ : s:searchpairpos(a:pair.start, a:pair.end, flags, stop)
   if pair_pos[0] > 0
-    let lines1 = len(join(getline(1, cur_pos[0]-1), '')) + cur_pos[1]
-    let lines2 = len(join(getline(1, pair_pos[0]-1), '')) + pair_pos[1]
-    if has_key(a:pair, 'open')
-      let size = lines2 - lines1
-      let cur_pos += [size]
-    else
-      let size = lines1 - lines2
-      let pair_pos += [size]
+    if g:hlparen_highlight_style == 'expression'
+      let [cur_pos, pair_pos] += s:calc_expression_range(cur_pos, pair_pos, is_open_paren)
     endif
     let w:hlparen_matchid = matchaddpos('HlParenMatch', [cur_pos, pair_pos], 10, 3)
   endif
+endfunction "}}}
+
+function! s:calc_expression_range(cur_pos, pair_pos, is_opened) abort "{{{
+  let lines1 = len(join(getline(1, a:cur_pos[0]-1), '')) + a:cur_pos[1]
+  let lines2 = len(join(getline(1, a:pair_pos[0]-1), '')) + a:pair_pos[1]
+  return a:is_opened ? [[lines2 - lines1], []] : [[], [lines1 - lines2]]
 endfunction "}}}
 
 function! s:save_excursion(cur_pos, func, args) abort "{{{

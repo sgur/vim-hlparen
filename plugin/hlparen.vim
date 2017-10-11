@@ -42,9 +42,9 @@ function! s:init() abort "{{{
   endfor
 endfunction "}}}
 
-let g:hlparen_insmode_trigger = get(g:, 'hlparen_insmode_trigger', 'close_only') " 'close_only'
+let g:hlparen_insmode_trigger = get(g:, 'hlparen_insmode_triggers', 'close_only') " 'both', 'close_only'
 let g:hlparen_highlight_delay = get(g:, 'hlparen_highlight_delay', 150) " msec
-let g:hlparen_highlight_style = get(g:, 'hlparen_highlight_style', 'parenthesis') " 'expression'
+let g:hlparen_highlight_style = get(g:, 'hlparen_highlight_style', 'parenthesis') " 'expression', 'parenthesis'
 
 let &cpoptions = s:save_cpo
 unlet s:save_cpo
