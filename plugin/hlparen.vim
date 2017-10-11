@@ -7,7 +7,11 @@ if exists('g:loaded_hlparen')
   finish
 endif
 let g:loaded_hlparen = 1
-let g:loaded_matchparen = -1
+
+if exists(':NoMatchParen')
+  NoMatchParen
+  let g:loaded_matchparen = 1
+endif
 
 let s:save_cpo = &cpoptions
 set cpoptions&vim
