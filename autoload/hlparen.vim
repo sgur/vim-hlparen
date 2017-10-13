@@ -27,7 +27,7 @@ endfunction
 " Internal {{{1
 
 function! s:highlight(pair, offset) abort "{{{
-  let skip_expr = s:skip_expr()
+  let skip_expr = s:skip_expr_for_cursor()
   if skip_expr is# 0 " skip in String/Character/Quote/Escape/Comment syntaxes
     return
   endif
@@ -64,15 +64,8 @@ function! s:save_excursion(cur_pos, func, args) abort "{{{
 endfunction "}}}
 
 " borrowed from $VIMRUNTIME/plugin/matchparen.vim
-" let expr = '
-"       \ !empty(
-"       \   filter(
-"       \     map(synstack(line("."), col(".")), ''synIDattr(v:val, "name")''),
-"       \     ''v:val =~? "\\%(string\\|character\\|singlequote\\|escape\\|comment\\)"''
-"       \ ))'
-function! s:skip_expr() abort "{{{
-  let expr = 'synIDattr(synIDtrans(synID(line(''.''), col(''.''), 1)),''name'') =~# ''\%(String\|Character\|Quote\|Escape\|Comment\)'''
-  return eval(expr) ? 0 : expr
+function! s:skip_expr_for_cursor() abort "{{{
+  return eval(s:skip_expr) ? 0 : s:skip_expr
 endfunction "}}}
 
 
@@ -82,5 +75,12 @@ if !hlexists('HlParenMatch')
   highlight HlParenMatch term=underline,bold cterm=underline,bold gui=underline,bold
 endif
 
+let s:skip_expr = "
+      \ !empty(
+      \   filter(
+      \     map(synstack(line('.'), col('.')),
+      \       'synIDattr(synIDtrans(v:val),''name'')'),
+      \     'index([''String'', ''Character'', ''Quote'', ''Escape'', ''Comment''], v:val) != -1'))
+      \ "
 
 " 1}}}
