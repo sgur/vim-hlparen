@@ -3,8 +3,8 @@ vim-hlparen
 
 カーソル下にある括弧の対応をハイライトするプラグインです
 
-概要
-----
+* 括弧のみだけでなく、その間もあわせてハイライトすることができます。
+* カーソルを移動した後、ハイライトまでに遅延を発生させることができます。
 
 Demo
 ----
@@ -49,7 +49,7 @@ let g:hlparen_highlight_delay = 1000
 - `expression` : マッチした括弧で囲まれた部分もハイライト
 
 ```vim
-let g:hlparen_highlight_style = 'parenthesis'
+let g:hlparen_highlight_style = 'expression'
 ```
 
 ### `HlParenMatch`
@@ -68,6 +68,12 @@ Install
 ```vim
 let g:loaded_matchparen = 1
 ```
+
+Known issues
+----
+
+* 挿入モードでカーソルを動かす際のハイライトについて考えられていない
+* `g:hlparen_highlight_style = 'expression'` のときにハイライトされる領域がおかしい
 
 Thanks
 ----
