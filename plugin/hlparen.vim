@@ -26,6 +26,7 @@ if pumvisible() || (&t_Co < 8 && !has("gui_running"))
 endif
 
 augroup hlparen
+  autocmd!
   autocmd! CursorMoved,CursorMovedI,WinEnter *
         \ call hlparen#highlight()
   autocmd! TextChanged,TextChangedI *

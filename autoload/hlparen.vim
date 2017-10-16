@@ -68,12 +68,15 @@ function! s:skip_expr_for_cursor() abort "{{{
   return eval(s:skip_expr) ? 0 : s:skip_expr
 endfunction "}}}
 
+function! s:init_highlight_group() abort "{{{
+  highlight default HlParenMatch term=underline,bold cterm=underline,bold gui=underline,bold
+endfunction "}}}
+
 
 " Initialization {{{1
 
-if !hlexists('HlParenMatch')
-  highlight HlParenMatch term=underline,bold cterm=underline,bold gui=underline,bold
-endif
+call s:init_highlight_group()
+autocmd! ColorScheme *  call s:init_highlight_group()
 
 let s:skip_expr = "
       \ !empty(
