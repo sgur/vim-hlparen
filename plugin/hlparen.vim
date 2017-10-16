@@ -42,8 +42,8 @@ function! s:init() abort "{{{
   for [open, close] in map(split(&l:matchpairs, ','), 'split(v:val, '':'')')
     let start = escape(open, '[]')
     let end = escape(close, '[]')
-    let w:hlparen_pairs[open] = {'start': start, 'end': end, 'open': 1}
-    let w:hlparen_pairs[close] = {'start': start, 'end': end}
+    let w:hlparen_pairs[open] = {'start': start, 'end': end, 'attr': 'open'}
+    let w:hlparen_pairs[close] = {'start': start, 'end': end, 'attr': 'close'}
   endfor
 endfunction "}}}
 

@@ -25,7 +25,7 @@ endfunction
 function! s:highlight(offset) abort "{{{
   let ch = getline('.')[col('.') - a:offset -1]
   let close_only = g:hlparen_insmode_trigger is# 'close_only'
-  if !has_key(w:hlparen_pairs, ch) || close_only && a:offset && has_key(w:hlparen_pairs[ch], 'open')
+  if !has_key(w:hlparen_pairs, ch) || close_only && a:offset && w:hlparen_pairs[ch].attr is# 'open'
     return
   endif
   let pair = w:hlparen_pairs[ch]
@@ -35,7 +35,7 @@ function! s:highlight(offset) abort "{{{
     return
   endif
 
-  let is_open_paren = has_key(pair, 'open')
+  let is_open_paren = pair.attr is# 'open'
   let flags = is_open_paren ? 'nW' : 'nbW'
   let stop = is_open_paren ? 'w$' : 'w0'
   let cur_pos = [line('.'), col('.') - a:offset]
