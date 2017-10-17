@@ -43,17 +43,56 @@ function! s:highlight(offset) abort "{{{
         \ ? s:save_excursion(cur_pos, function('searchpairpos'), [pair.start, '', pair.end, flags, skip_expr, stop])
         \ : searchpairpos(pair.start, '', pair.end, flags, skip_expr, stop)
   if pair_pos[0] > 0
+    let middle = []
     if g:hlparen_highlight_style == 'expression'
-      let [cur_pos, pair_pos] += s:calc_expression_range(cur_pos, pair_pos, is_open_paren)
+      let [cur_pos, pair_pos] = s:calc_expression_range(cur_pos, pair_pos, is_open_paren)
+      let middle = s:intermediate_expressions(cur_pos, pair_pos)
     endif
-    let w:hlparen_matchid = matchaddpos('HlParenMatch', [cur_pos, pair_pos], 10, 3)
+    let w:hlparen_matchid = matchaddpos('HlParenMatch', [cur_pos] + middle + [pair_pos], 10, 3)
   endif
 endfunction "}}}
 
 function! s:calc_expression_range(cur_pos, pair_pos, is_opened) abort "{{{
-  let len1 = len(join(getline(1, a:cur_pos[0]-1), '')) + a:cur_pos[1]
-  let len2 = len(join(getline(1, a:pair_pos[0]-1), '')) + a:pair_pos[1]
-  return a:is_opened ? [[len2 - len1], []] : [[], [len1 - len2]]
+  if a:cur_pos[0] == a:pair_pos[0]
+    let len1 = len(join(getline(1, a:cur_pos[0]-1), '')) + a:cur_pos[1]
+    let len2 = len(join(getline(1, a:pair_pos[0]-1), '')) + a:pair_pos[1]
+    return a:is_opened ? [a:cur_pos + [len2 - len1], a:pair_pos] : [a:cur_pos, a:pair_pos + [len1 - len2]]
+  endif
+
+  if a:is_opened
+    let pair_pos = s:opposite_pos(a:pair_pos)
+    let cur_len = s:cursor_expression_length(a:cur_pos)
+    return [a:cur_pos + [cur_len], pair_pos]
+  else
+    let cur_pos = s:opposite_pos(a:cur_pos)
+    let pair_len = s:cursor_expression_length(a:pair_pos)
+    return [cur_pos, a:pair_pos + [pair_len]]
+  endif
+endfunction "}}}
+
+function! s:intermediate_expressions(pos1, pos2) abort "{{{
+  let middle = []
+  let intermediates = abs(a:pos1[0] - a:pos2[0]) - 1
+  if 0 < intermediates && intermediates < 7
+    let start = min([a:pos1[0], a:pos2[0]]) + 1
+    let end = max([a:pos1[0], a:pos2[0]]) - 1
+    for i in range(start, end)
+      let line = getline(i)
+      let match = match(line, '^\s*\zs')
+      let middle += [[i, match + 1 , len(line) - match]]
+    endfor
+  endif
+  return middle
+endfunction "}}}
+
+function! s:cursor_expression_length(pos) abort "{{{
+  return len(getline(a:pos[0])) + 1 - a:pos[1]
+endfunction "}}}
+
+function! s:opposite_pos(pos) abort "{{{
+  let line = getline(a:pos[0])
+  let match = match(line, '^\s*\zs')
+  return [a:pos[0], match + 1, a:pos[1] - match]
 endfunction "}}}
 
 function! s:save_excursion(cur_pos, func, args) abort "{{{

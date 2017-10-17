@@ -46,7 +46,7 @@ let g:hlparen_highlight_delay = 1000
 括弧のハイライト時のスタイル
 
 - `parenthesis` : マッチする括弧のみをハイライト (デフォルト)
-- `expression` : マッチした括弧で囲まれた部分もハイライト
+- `expression` : マッチした括弧で囲まれた部分もハイライト (注意: 最大8行まで)
 
 ```vim
 let g:hlparen_highlight_style = 'expression'
