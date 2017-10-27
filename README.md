@@ -35,10 +35,10 @@ let g:hlparen_insmode_trigger = 'both'
 
 カーソルが括弧に移動後、ハイライトするまでの遅延時間(ミリ秒)
 
-- `150` (デフォルト)
+- 300 (デフォルト)
 
 ```vim
-let g:hlparen_highlight_delay = 1000
+let g:hlparen_highlight_delay = 100
 ```
 
 ### `g:hlparen_highlight_style`
