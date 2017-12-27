@@ -29,8 +29,8 @@ augroup hlparen
   autocmd!
   autocmd CursorMoved,CursorMovedI,WinEnter *  call hlparen#highlight()
   autocmd TextChanged,TextChangedI *  call hlparen#highlight()
-  autocmd InsertEnter * call hlparen#highlight(1)
-  autocmd InsertLeave * call hlparen#highlight(0)
+  autocmd InsertEnter * call hlparen#on_insertenter()
+  autocmd InsertLeave * call hlparen#highlight()
   autocmd VimEnter,WinEnter,BufWinEnter,FileType *  call s:init()
   autocmd OptionSet matchpairs  call s:init()
 augroup END
@@ -40,8 +40,12 @@ function! s:init() abort "{{{
   for [open, close] in map(split(&l:matchpairs, ','), 'split(v:val, '':'')')
     let start = escape(open, '[]')
     let end = escape(close, '[]')
-    let w:hlparen_pairs[open] = {'start': start, 'end': end, 'attr': 'open'}
-    let w:hlparen_pairs[close] = {'start': start, 'end': end, 'attr': 'close'}
+    if !has_key(w:hlparen_pairs, open)
+      let w:hlparen_pairs[open] = {'start': start, 'end': end, 'attr': 'open'}
+    endif
+    if !has_key(w:hlparen_pairs, close)
+      let w:hlparen_pairs[close] = {'start': start, 'end': end, 'attr': 'close'}
+    endif
   endfor
 endfunction "}}}
 

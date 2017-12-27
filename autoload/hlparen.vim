@@ -4,7 +4,18 @@ scriptencoding utf-8
 
 " Interface {{{1
 
-function! hlparen#highlight(...) abort
+function! hlparen#highlight() abort
+  call s:highlight(mode() is# 'i' || mode() is# 'R')
+endfunction
+
+function! hlparen#on_insertenter() abort
+  call s:highlight(1)
+endfunction
+
+
+" Internal {{{1
+
+function! s:highlight(offset) abort "{{{
   if get(w:, 'hlparen_matchid', 0)
     silent! call matchdelete(w:hlparen_matchid)
     let w:hlparen_matchid = 0
@@ -14,21 +25,16 @@ function! hlparen#highlight(...) abort
     call timer_stop(s:timer_id)
   endif
 
-  let offset = a:0 ? a:1 : mode() is# 'i' || mode() is# 'R'
   let s:timer_id = timer_start(g:hlparen_highlight_delay,
-        \ {timer -> s:highlight(offset)})
-endfunction
+        \ {timer -> s:highlight_callback(a:offset)})
+endfunction "}}}
 
-
-" Internal {{{1
-
-function! s:highlight(offset) abort "{{{
+function! s:highlight_callback(offset) abort "{{{
   let ch = getline('.')[col('.') - a:offset -1]
-  let close_only = g:hlparen_insmode_trigger is# 'close_only'
-  if !has_key(w:hlparen_pairs, ch) || close_only && a:offset && w:hlparen_pairs[ch].attr is# 'open'
+  let pair = get(get(w:, 'hlparen_pairs', {}), ch, {})
+  if empty(pair)
     return
   endif
-  let pair = w:hlparen_pairs[ch]
 
   let skip_expr = s:skip_expr_for_cursor()
   if skip_expr is# 0 " skip in String/Character/Quote/Escape/Comment syntaxes
